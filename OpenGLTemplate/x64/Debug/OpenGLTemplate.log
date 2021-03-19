@@ -1,0 +1,6 @@
+﻿  CatmullRom.cpp
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\CatmullRom.cpp(331,36): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\CatmullRom.cpp(353,61): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\CatmullRom.cpp(362,62): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\CatmullRom.cpp(368,63): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+  OpenGLTemplate.vcxproj -> C:\Users\saifs\Documents\GitHub\openGL-RacingGame\x64\Debug\OpenGLTemplate.exe
