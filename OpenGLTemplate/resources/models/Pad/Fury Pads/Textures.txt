@@ -1,0 +1,19 @@
+As you can see, the textures (extracted from PS3) have some "weird" naming, like ds_speedup_cs.bmp or ds_speedup_ne.bmp
+
+I think that the last letters before the extension are refered to this "naming".
+
+C= Color
+S= Specular
+N= Normal map
+E= Emissive
+
+I got the results on the image in ue4 using this node links:
+
+C = Diffuse
+S = Specular, Metallic, Ambient Oclussion
+N = Normal Map
+E = Alpha node + color nodes and intensity to Emmisive color
+
+Model by SCE and Studio Liverpol, ripped, uv-maped by josema0890
+
+Extracted thanks to shakotay2 h2o program: http://forum.xentax.com/viewtopic.php?f=29&t=10894

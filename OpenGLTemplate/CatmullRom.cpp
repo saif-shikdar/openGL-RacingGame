@@ -7,6 +7,7 @@
 CCatmullRom::CCatmullRom()
 {
 	m_vertexCount = 0;
+	trackWidth = 60.0f;
 }
 
 CCatmullRom::~CCatmullRom()
@@ -40,9 +41,10 @@ void CCatmullRom::SetControlPoints()
 	m_controlPoints.push_back(glm::vec3(100, 10, 0));
 	m_controlPoints.push_back(glm::vec3(71, 30, -71));
 	m_controlPoints.push_back(glm::vec3(0, 50, -100));
-	m_controlPoints.push_back(glm::vec3(-251, 50, -100));
-	m_controlPoints.push_back(glm::vec3(-300, 50, -200));
-	m_controlPoints.push_back(glm::vec3(-349, 50, -49));
+	m_controlPoints.push_back(glm::vec3(-176, 50, -109));
+	m_controlPoints.push_back(glm::vec3(-346, 50, -172));
+	m_controlPoints.push_back(glm::vec3(-503, 50, -82));
+	m_controlPoints.push_back(glm::vec3(-422, 50, 186));
 	m_controlPoints.push_back(glm::vec3(243, 50, 99));
 	m_controlPoints.push_back(glm::vec3(124, 5, -357));
 	m_controlPoints.push_back(glm::vec3(217, 5, -459));
@@ -190,12 +192,13 @@ void CCatmullRom::CreateCentreline()
 	CVertexBufferObject vbo;
 	vbo.Create();
 	vbo.Bind();
-	glm::vec2 texCoord(0.0f, 0.0f);
+	
+	glm::vec2 textcords(0.0f, 0.0f);
 	glm::vec3 normal(0.0f, 1.0f, 0.0f);
 
-	for (auto &centrelinePoint : m_centrelinePoints) {
-		vbo.AddData(&centrelinePoint, sizeof(glm::vec3));
-		vbo.AddData(&texCoord, sizeof(glm::vec2));
+	for (auto &centreLinePoint : m_centrelinePoints) {
+		vbo.AddData(&centreLinePoint, sizeof(glm::vec3));
+		vbo.AddData(&textcords, sizeof(glm::vec2));
 		vbo.AddData(&normal, sizeof(glm::vec3));
 	}
 
@@ -228,8 +231,8 @@ void CCatmullRom::CreateOffsetCurves()
 		glm::vec3 n = glm::normalize(glm::cross(t, glm::vec3(0, 1, 0)));
 		glm::vec3 b = glm::normalize(glm::cross(n, t));
 
-		glm::vec3 l = p - ((20.0f / 2) * n);
-		glm::vec3 r = p + ((20.0f / 2) * n);
+		glm::vec3 l = p - ((trackWidth / 2) * n);
+		glm::vec3 r = p + ((trackWidth / 2) * n);
 
 		m_leftOffsetPoints.push_back(l);
 		m_rightOffsetPoints.push_back(r);
@@ -296,9 +299,27 @@ void CCatmullRom::CreateOffsetCurves()
 		(void*)(sizeof(glm::vec3) + sizeof(glm::vec2)));
 }
 
+float CCatmullRom::GetWidth() 
+{
+	return trackWidth;
+}
+
 
 void CCatmullRom::CreateTrack()
 {
+	m_texture.Load("resources\\skyboxes\\grill.jpg");
+	m_texture.SetSamplerObjectParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	m_texture.SetSamplerObjectParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	m_texture.SetSamplerObjectParameter(GL_TEXTURE_WRAP_S, GL_REPEAT);
+	m_texture.SetSamplerObjectParameter(GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	vector<glm::vec2> textcords{
+		glm::vec2(0.0f, 0.0f),
+		glm::vec2(0.5f, 0.0f),
+		glm::vec2(0.0f, 0.5f),
+		glm::vec2(0.5f,0.5f),
+		
+	};
 
 	// Generate a VAO called m_vaoTrack and a VBO to get the offset curve points and indices on the graphics card
 
@@ -310,6 +331,9 @@ void CCatmullRom::CreateTrack()
 	m_triPoints.push_back(m_leftOffsetPoints[0]);
 	m_triPoints.push_back(m_rightOffsetPoints[0]);
 
+	m_triPoints.push_back(m_leftOffsetPoints[1]);
+	m_triPoints.push_back(m_rightOffsetPoints[1]);
+
 	glGenVertexArrays(1, &m_vaoTrack);
 	glBindVertexArray(m_vaoTrack);
 
@@ -319,17 +343,45 @@ void CCatmullRom::CreateTrack()
 	glm::vec2 texCoord(0.0f, 0.0f);
 	glm::vec3 normal(0.0f, 1.0f, 0.0f);
 
-	for (auto& triPoint : m_triPoints) {
-		vbo.AddData(&triPoint, sizeof(glm::vec3));
-		vbo.AddData(&texCoord, sizeof(glm::vec2));
+	for (int i = 0; i < m_triPoints.size(); i++) {
+		vbo.AddData(&m_triPoints[i], sizeof(glm::vec3));
+		vbo.AddData(&textcords[i%4], sizeof(glm::vec2));
 		vbo.AddData(&normal, sizeof(glm::vec3));
-	} 
+	}
 
 	vbo.UploadDataToGPU(GL_STATIC_DRAW);
 
 	m_vertexCount = m_triPoints.size();
 
 	GLsizei stride = 2 * sizeof(glm::vec3) + sizeof(glm::vec2);
+	// Vertex positions
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, 0);
+	// Texture coordinates
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)sizeof(glm::vec3));
+	// Normal vectors
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride,
+		(void*)(sizeof(glm::vec3) + sizeof(glm::vec2)));
+
+	glGenVertexArrays(1, &m_vaoTrack2);
+	glBindVertexArray(m_vaoTrack2);
+
+	CVertexBufferObject vbo2;
+	vbo2.Create();
+	vbo2.Bind();
+
+	for (int i = m_triPoints.size() - 1; i > 0; i--) {
+		vbo2.AddData(&m_triPoints[i], sizeof(glm::vec3));
+		vbo2.AddData(&textcords[i % 4], sizeof(glm::vec2));
+		vbo2.AddData(&normal, sizeof(glm::vec3));
+	}
+
+	vbo2.UploadDataToGPU(GL_STATIC_DRAW);
+
+	m_vertexCount = m_triPoints.size();
+
 	// Vertex positions
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, 0);
@@ -371,12 +423,17 @@ void CCatmullRom::RenderOffsetCurves()
 void CCatmullRom::RenderTrack()
 {
 	// Bind the VAO m_vaoTrack and render it
-
-	glLineWidth(1.0f);
 	glBindVertexArray(m_vaoTrack);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawArrays(GL_LINE_STRIP, 0, m_vertexCount);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//glLineWidth(1.0f);
+	m_texture.Bind();
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, m_vertexCount);
+	glBindVertexArray(m_vaoTrack2);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//glLineWidth(1.0f);
+	m_texture.Bind();
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, m_vertexCount);
+	
 }
 
 int CCatmullRom::CurrentLap(float d)

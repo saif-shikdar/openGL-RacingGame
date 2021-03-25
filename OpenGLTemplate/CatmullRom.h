@@ -13,6 +13,8 @@ public:
 
 	void CreateCentreline();
 	void RenderCentreline();
+	
+	float GetWidth();
 
 	void CreateOffsetCurves();
 	void RenderOffsetCurves();
@@ -39,6 +41,7 @@ private:
 	GLuint m_vaoLeftOffsetCurve;
 	GLuint m_vaoRightOffsetCurve;
 	GLuint m_vaoTrack;
+	GLuint m_vaoTrack2;
 
 	static glm::vec3 _dummy_vector;
 	vector<glm::vec3> m_controlPoints;		// Control points, which are interpolated to produce the centreline points
@@ -52,4 +55,5 @@ private:
 
 
 	unsigned int m_vertexCount;				// Number of vertices in the track VBO
+	float trackWidth;
 };

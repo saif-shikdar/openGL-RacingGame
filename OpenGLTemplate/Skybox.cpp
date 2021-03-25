@@ -14,11 +14,9 @@ CSkybox::~CSkybox()
 void CSkybox::Create(float size)
 {
 
-	m_cubemapTexture.Create("resources\\skyboxes\\jajdarkland1\\flipped\\jajdarkland1_rt.jpg", "resources\\skyboxes\\jajdarkland1\\flipped\\jajdarkland1_lf.jpg",
-		"resources\\skyboxes\\jajdarkland1\\flipped\\jajdarkland1_up.jpg", "resources\\skyboxes\\jajdarkland1\\flipped\\jajdarkland1_dn.jpg",
-		"resources\\skyboxes\\jajdarkland1\\flipped\\jajdarkland1_bk.jpg", "resources\\skyboxes\\jajdarkland1\\flipped\\jajdarkland1_ft.jpg");
-
-	
+	m_cubemapTexture.Create("resources\\skyboxes\\space2.jpg", "resources\\skyboxes\\space2.jpg",
+		"resources\\skyboxes\\space2.jpg", "resources\\skyboxes\\space2.jpg",
+		"resources\\skyboxes\\space2.jpg", "resources\\skyboxes\\space2.jpg"); // Downloaded from https://wallpaperaccess.com/full/296718.jpg on 23/03/21
 	
 	glGenVertexArrays(1, &m_vao);
 	glBindVertexArray(m_vao);

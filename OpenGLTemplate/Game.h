@@ -34,6 +34,8 @@ private:
 	COpenAssetImportMesh *m_pBarrelMesh;
 	COpenAssetImportMesh *m_pHorseMesh;
 	COpenAssetImportMesh *m_ship;
+	COpenAssetImportMesh* m_asteroid;
+	COpenAssetImportMesh* m_pad;
 
 	CSphere *m_pSphere;
 	CHighResolutionTimer *m_pHighResolutionTimer;
@@ -45,7 +47,9 @@ private:
 	int m_framesPerSecond;
 	bool m_appActive;
 	glm::vec3 ship_position;
+	glm::vec3 pad_pos;
 	glm::mat4 ship_rotation;
+	int lap_number;
 	
 
 
@@ -57,15 +61,26 @@ public:
 	void SetHinstance(HINSTANCE hinstance);
 	WPARAM Execute();
 
+	glm::vec3 camT;
+	glm::vec3 camB;
+	glm::vec3 camN;
+	glm::vec3 p;
+
 private:
 	static const int FPS = 60;
 	void DisplayFrameRate();
 	void GameLoop();
+	void SwitchCamera();
+	bool checkDistance(glm::vec3 c);
 	GameWindow m_gameWindow;
 	HINSTANCE m_hInstance;
 	int m_frameCount;
 	double m_elapsedTime;
 	float m_currentDistance;
 	float m_cameraSpeed;
-
+	bool pedalUp;
+	int camView;
+	float m_rotY;
+	float offsetPos;
+	bool boostActive;
 };

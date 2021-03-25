@@ -18,7 +18,7 @@ Source code drawn from a number of sources and examples, including contributions
 
 
 #include "game.h"
-
+#include <iostream>
 
 // Setup includes
 #include "HighResolutionTimer.h"
@@ -47,6 +47,8 @@ Game::Game()
 	m_pBarrelMesh = NULL;
 	m_pHorseMesh = NULL;
 	m_ship = NULL;
+	m_asteroid = NULL;
+	m_pad = NULL;
 	m_pSphere = NULL;
 	m_pHighResolutionTimer = NULL;
 	m_pAudio = NULL;
@@ -57,9 +59,20 @@ Game::Game()
 	m_frameCount = 0;
 	m_elapsedTime = 0.0f;
 	m_currentDistance = 0.0f;
-	m_cameraSpeed = 0.05f;
+	m_cameraSpeed = 0.0f;
 	ship_position = glm::vec3();
+	pad_pos = glm::vec3();
 	ship_rotation = glm::mat4();
+	lap_number = 1;
+	pedalUp = false;
+	camView = 0;
+	m_rotY = 0.0f;
+	camB = glm::vec3();
+	camN = glm::vec3();
+	camT = glm::vec3();
+	p = glm::vec3();
+	offsetPos = 0;
+	boostActive = false;
 }
 
 // Destructor
@@ -73,6 +86,8 @@ Game::~Game()
 	delete m_pBarrelMesh;
 	delete m_pHorseMesh;
 	delete m_ship;
+	delete m_asteroid;
+	delete m_pad;
 	delete m_pSphere;
 	delete m_pAudio;
 	delete m_pCatmullRom;
@@ -103,6 +118,8 @@ void Game::Initialise()
 	m_pBarrelMesh = new COpenAssetImportMesh;
 	m_pHorseMesh = new COpenAssetImportMesh;
 	m_ship = new COpenAssetImportMesh;
+	m_asteroid = new COpenAssetImportMesh;
+	m_pad = new COpenAssetImportMesh;
 	m_pSphere = new CSphere;
 	m_pAudio = new CAudio;
 	m_pCatmullRom = new CCatmullRom;
@@ -160,7 +177,7 @@ void Game::Initialise()
 	m_pSkybox->Create(2500.0f);
 	
 	// Create the planar terrain
-	m_pPlanarTerrain->Create("resources\\textures\\", "grassfloor01.jpg", 2000.0f, 2000.0f, 50.0f); // Texture downloaded from http://www.psionicgames.com/?page_id=26 on 24 Jan 2013
+	//m_pPlanarTerrain->Create("resources\\textures\\", "grassfloor01.jpg", 2000.0f, 2000.0f, 50.0f); // Texture downloaded from http://www.psionicgames.com/?page_id=26 on 24 Jan 2013
 
 	m_pFtFont->LoadSystemFont("arial.ttf", 32);
 	m_pFtFont->SetShaderProgram(pFontProgram);
@@ -169,16 +186,18 @@ void Game::Initialise()
 	m_pBarrelMesh->Load("resources\\models\\Barrel\\Barrel02.obj");  // Downloaded from http://www.psionicgames.com/?page_id=24 on 24 Jan 2013
 	m_pHorseMesh->Load("resources\\models\\Horse\\Horse2.obj");  // Downloaded from http://opengameart.org/content/horse-lowpoly on 24 Jan 2013
 	m_ship->Load("resources\\models\\Ship\\shipA_OBJ.obj"); // Downloaded from https://www.turbosquid.com/3d-models/space-fighter-3ds-free/820608 on 12/03/21
+	m_asteroid->Load("resources\\models\\Asteroid\\asteroid.obj"); // Downloaded from https://www.turbosquid.com/3d-models/asteroid-space-planet-3ds-free/616773 on 25/03/21
+	m_pad->Load("resources\\models\\Pad\\speedboost.obj"); // Downloaded from https://drive.google.com/file/d/0B9dy0wb-EfqPYTVLWWQyaHc0Yk0/view on 24/03/21
 
 	// Create a sphere
 	m_pSphere->Create("resources\\textures\\", "dirtpile01.jpg", 25, 25);  // Texture downloaded from http://www.psionicgames.com/?page_id=26 on 24 Jan 2013
 	glEnable(GL_CULL_FACE);
 
 	// Initialise audio and play background music
-	m_pAudio->Initialise();
-	m_pAudio->LoadEventSound("Resources\\Audio\\Boing.wav");					// Royalty free sound from freesound.org
-	m_pAudio->LoadMusicStream("Resources\\Audio\\DST-Garote.mp3");	// Royalty free music from http://www.nosoapradio.us/
-	m_pAudio->PlayMusicStream();
+	//m_pAudio->Initialise();
+	//m_pAudio->LoadEventSound("Resources\\Audio\\Boing.wav");					// Royalty free sound from freesound.org
+	//m_pAudio->LoadMusicStream("Resources\\Audio\\DST-Garote.mp3");	// Royalty free music from http://www.nosoapradio.us/
+	//m_pAudio->PlayMusicStream();
 
 	/*glm::vec3 p0 = glm::vec3(-500, 10, -200);
 	glm::vec3 p1 = glm::vec3(0, 10, -200);
@@ -245,39 +264,61 @@ void Game::Render()
 		pMainProgram->SetUniform("renderSkybox", false);
 	modelViewMatrixStack.Pop();
 
-	// Render the planar terrain
+	/*// Render the planar terrain
 	modelViewMatrixStack.Push();
 		pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
 		pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
 		m_pPlanarTerrain->Render();
-	modelViewMatrixStack.Pop();
+	modelViewMatrixStack.Pop();*/
 
+	modelViewMatrixStack.Push(); {
+		//modelViewMatrixStack.Rotate(glm::vec3(0, 1, 0), m_rotY);
+		//modelViewMatrixStack.Translate(glm::vec3(5, 0, 0));
+
+		modelViewMatrixStack.Push(); {
+			modelViewMatrixStack.Rotate(glm::vec3(0, 1, 0), m_rotY);
+			modelViewMatrixStack.Translate(glm::vec3(1000, 30, 0));
+			modelViewMatrixStack.Scale(100.0);
+			pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
+			m_pSphere->Render();
+		} modelViewMatrixStack.Pop();
+
+		// Render the asteroid
+		modelViewMatrixStack.Push();
+		modelViewMatrixStack.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), m_rotY);
+		modelViewMatrixStack.Translate(glm::vec3(10.f, 5.0f, 0.0f));
+		modelViewMatrixStack.Scale(1.0f);
+		pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
+		pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
+		m_asteroid->Render();
+		modelViewMatrixStack.Pop();
+	} modelViewMatrixStack.Pop();
 
 	// Turn on diffuse + specular materials
 	pMainProgram->SetUniform("material1.Ma", glm::vec3(0.5f));	// Ambient material reflectance
 	pMainProgram->SetUniform("material1.Md", glm::vec3(0.5f));	// Diffuse material reflectance
 	pMainProgram->SetUniform("material1.Ms", glm::vec3(1.0f));	// Specular material reflectance	
 
-
-	// Render the horse 
-	modelViewMatrixStack.Push();
-		modelViewMatrixStack.Translate(glm::vec3(0.0f, 0.0f, 0.0f));
-		modelViewMatrixStack.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), 180.0f);
-		modelViewMatrixStack.Scale(2.5f);
-		pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
-		pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
-		m_pHorseMesh->Render();
-	modelViewMatrixStack.Pop();
-
 	// Render the ship
 	modelViewMatrixStack.Push();
 	modelViewMatrixStack.Translate(ship_position);
-	modelViewMatrixStack.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), 80.0f);
+	modelViewMatrixStack.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), 80.1f);
 	modelViewMatrixStack *= ship_rotation;
 	modelViewMatrixStack.Scale(0.2f);
 	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
 	pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
 	m_ship->Render();
+	modelViewMatrixStack.Pop();
+
+	// Render the pad
+	modelViewMatrixStack.Push();
+	pad_pos = glm::vec3(-24, 2.5, -650);
+	modelViewMatrixStack.Translate(pad_pos);
+	modelViewMatrixStack.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), 3.f);
+	modelViewMatrixStack.Scale(3.5f);
+	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
+	pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
+	m_pad->Render();
 	modelViewMatrixStack.Pop();
 	
 	// Render the barrel 
@@ -302,7 +343,7 @@ void Game::Render()
 	modelViewMatrixStack.Pop();
 		
 	modelViewMatrixStack.Push();
-	pMainProgram->SetUniform("bUseTexture", false); // turn off texturing
+	pMainProgram->SetUniform("bUseTexture", true); // turn off texturing
 	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
 	pMainProgram->SetUniform("matrices.normalMatrix",
 		m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
@@ -311,8 +352,8 @@ void Game::Render()
 	// Render your object here
 	modelViewMatrixStack.Pop();
 
-	m_pCatmullRom->RenderCentreline();
-	m_pCatmullRom->RenderOffsetCurves();
+	//m_pCatmullRom->RenderCentreline();
+	//m_pCatmullRom->RenderOffsetCurves();
 	m_pCatmullRom->RenderTrack();
 
 	// Draw the 2D graphics after the 3D graphics
@@ -329,34 +370,86 @@ void Game::Update()
 {
 	// Update the camera using the amount of time that has elapsed to avoid framerate dependent motion
 	//m_pCamera->Set(glm::vec3(0, 300, 0), glm::vec3(0, 0, 0), glm::vec3(1, 0, 0));
-	m_pCamera->Update(m_dt);	
+	m_pCamera->Update(m_dt);
+
+	m_rotY += 0.0005f * m_dt;
+
+	if (!pedalUp) {
+		if (m_cameraSpeed >= 0) {
+			m_cameraSpeed -= 0.0001 * m_dt;
+		}
+	}
+	else {
+		if (m_cameraSpeed < 0.195) {
+			boostActive = false;
+			m_cameraSpeed += 0.00005 * m_dt;
+		}
+		else if (m_cameraSpeed > 0.2) {
+			boostActive = true;
+			m_cameraSpeed -= 0.00005 * m_dt;
+		}
+	}
+
+	if (m_cameraSpeed < 0) {
+		m_cameraSpeed = 0;
+	}
+
+	if (checkDistance(pad_pos)) {
+		if (pedalUp) {
+			m_cameraSpeed = 0.3;
+		}	
+	}
 
 	m_dt * 0.1f;
 	m_currentDistance += m_cameraSpeed;
-	
-	glm::vec3 p;
+
 	m_pCatmullRom->Sample(m_currentDistance, p);
 
 	glm::vec3 pNext;
 	m_pCatmullRom->Sample(m_currentDistance + 1.0f, pNext);
 
-	glm::vec3 camT = glm::normalize(pNext - p);
-	glm::vec3 camN = glm::normalize(glm::cross(camT, glm::vec3(0, 1, 0)));
-	glm::vec3 camB = glm::normalize(glm::cross(camN, camT));
+	camT = glm::normalize(pNext - p);
+	camN = glm::normalize(glm::cross(camT, glm::vec3(0, 1, 0)));
+	camB = glm::normalize(glm::cross(camN, camT));
 
-	ship_position = (p - 10.0f * camT + glm::vec3(0,3,0));
+	lap_number = m_pCatmullRom->CurrentLap(m_currentDistance) + 1;
+
+	ship_position = ((p - (15.0f * camT) + glm::vec3(0, 3, 0)) + offsetPos * camN);
+
 	ship_rotation = glm::mat4(glm::mat3(camT, camB, camN));
 
-	glm::vec3 pCam;
-	m_pCatmullRom->Sample(m_currentDistance + 10.0f, pCam);
-
-	//m_pCamera->Set(p + 40.0f + camT, p, glm::vec3(0,1,0));
+	SwitchCamera();
 
 	m_pAudio->Update();
 }
 
+void Game::SwitchCamera() {
 
+	switch (camView)
+	{
+	case 0:
+		m_pCamera->Set(p + (15.f * camB) - (45.f * camT), p - 15.0f * camT, glm::vec3(0, 1, 0));
+		break;
+	case 1:
+		m_pCamera->Set(p + (50.f * camB) - (45.f * camT), p - 15.0f * camT, glm::vec3(0, 1, 0));
+		break;
+	case 2:
+		m_pCamera->Set(p + (15.f * camB) + (0.f * camT) + (20.f * camN), p - 15.0f * camT, glm::vec3(0, 1, 0));
+	case 3:
+		m_pCamera->SetViewByMouse();
+	default:
+		break;
+	}
+}
 
+bool Game::checkDistance(glm::vec3 c)
+{
+	glm::vec3 d = ship_position - c;
+	if (glm::length(d) < 12.0f)
+		return true;
+	else
+		return false;
+}
 
 void Game::DisplayFrameRate()
 {
@@ -366,6 +459,7 @@ void Game::DisplayFrameRate()
 
 	RECT dimensions = m_gameWindow.GetDimensions();
 	int height = dimensions.bottom - dimensions.top;
+	int width = dimensions.right - dimensions.left;
 
 	// Increase the elapsed time and frame counter
 	m_elapsedTime += m_dt;
@@ -389,8 +483,10 @@ void Game::DisplayFrameRate()
 		fontProgram->SetUniform("matrices.modelViewMatrix", glm::mat4(1));
 		fontProgram->SetUniform("matrices.projMatrix", m_pCamera->GetOrthographicProjectionMatrix());
 		fontProgram->SetUniform("vColour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-		m_pFtFont->Render(20, height - 20, 20, "FPS: %d", m_framesPerSecond);
-		m_pFtFont->Render(20, height - 40, 20, "POSTION: %d", ship_position.y);
+		m_pFtFont->Render(20, height - 40, 25, "FPS: %d", m_framesPerSecond);
+		m_pFtFont->Render(20, height - 100, 25, "LAP: %d / 3", lap_number);
+		m_pFtFont->Render(width - 400, height - 40, 25, "POSITION: %f %f", ship_position.x, ship_position.z);
+		m_pFtFont->Render(width - 161, height - 510, 25, "SPEED: %f KPH", m_cameraSpeed * 1000);
 	}
 }
 
@@ -406,7 +502,6 @@ void Game::GameLoop()
 		Render();
 	}
 	*/
-	
 	
 	// Variable timer
 	m_pHighResolutionTimer->Start();
@@ -462,24 +557,24 @@ LRESULT Game::ProcessEvents(HWND window,UINT message, WPARAM w_param, LPARAM l_p
 
 	case WM_ACTIVATE:
 	{
-		switch(LOWORD(w_param))
+		switch (LOWORD(w_param))
 		{
-			case WA_ACTIVE:
-			case WA_CLICKACTIVE:
-				m_appActive = true;
-				m_pHighResolutionTimer->Start();
-				break;
-			case WA_INACTIVE:
-				m_appActive = false;
-				break;
+		case WA_ACTIVE:
+		case WA_CLICKACTIVE:
+			m_appActive = true;
+			m_pHighResolutionTimer->Start();
+			break;
+		case WA_INACTIVE:
+			m_appActive = false;
+			break;
 		}
 		break;
-		}
+	}
 
 	case WM_SIZE:
-			RECT dimensions;
-			GetClientRect(window, &dimensions);
-			m_gameWindow.SetDimensions(dimensions);
+		RECT dimensions;
+		GetClientRect(window, &dimensions);
+		m_gameWindow.SetDimensions(dimensions);
 		break;
 
 	case WM_PAINT:
@@ -489,12 +584,50 @@ LRESULT Game::ProcessEvents(HWND window,UINT message, WPARAM w_param, LPARAM l_p
 		break;
 
 	case WM_KEYDOWN:
-		switch(w_param) {
+		switch (w_param) {
 		case VK_ESCAPE:
 			PostQuitMessage(0);
 			break;
 		case '1':
 			m_pAudio->PlayEventSound();
+			break;
+		case '2':
+			camView = 0;
+			break;
+		case '3':
+			camView = 1;
+			break;
+		case '4':
+			camView = 2;
+			break;
+		case '5':
+			camView = 3;
+			break;
+		case VK_UP:
+			pedalUp = true;
+			break;
+		case VK_DOWN:
+			if (m_cameraSpeed >= 0.005) {
+				m_cameraSpeed -= 0.005 * m_dt;
+			}
+			break;
+		case VK_LEFT:
+			if (offsetPos > -20) {
+				offsetPos -= 1.0f * m_dt;
+			}
+			break;
+		case VK_RIGHT:
+			if (offsetPos < 20) {
+				offsetPos += 1.0f * m_dt;
+			}
+			break;
+		}
+		break;
+
+	case WM_KEYUP:
+		switch (w_param) {
+		case VK_UP:
+			pedalUp = false;
 			break;
 		}
 		break;
