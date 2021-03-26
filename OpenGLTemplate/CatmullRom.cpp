@@ -307,7 +307,7 @@ float CCatmullRom::GetWidth()
 
 void CCatmullRom::CreateTrack()
 {
-	m_texture.Load("resources\\skyboxes\\grill.jpg");
+	m_texture.Load("resources\\textures\\road.jpg"); // Downloaded from https://www.artstation.com/artwork/Bm1N2D on 26/03/21
 	m_texture.SetSamplerObjectParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	m_texture.SetSamplerObjectParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	m_texture.SetSamplerObjectParameter(GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -315,9 +315,9 @@ void CCatmullRom::CreateTrack()
 
 	vector<glm::vec2> textcords{
 		glm::vec2(0.0f, 0.0f),
-		glm::vec2(0.5f, 0.0f),
-		glm::vec2(0.0f, 0.5f),
-		glm::vec2(0.5f,0.5f),
+		glm::vec2(1.0f, 0.0f),
+		glm::vec2(0.0f, 1.0f),
+		glm::vec2(1.0f,1.0f),
 		
 	};
 
@@ -374,7 +374,7 @@ void CCatmullRom::CreateTrack()
 
 	for (int i = m_triPoints.size() - 1; i > 0; i--) {
 		vbo2.AddData(&m_triPoints[i], sizeof(glm::vec3));
-		vbo2.AddData(&textcords[i % 4], sizeof(glm::vec2));
+		vbo2.AddData(&textcords[i%4], sizeof(glm::vec2));
 		vbo2.AddData(&normal, sizeof(glm::vec3));
 	}
 
@@ -394,6 +394,82 @@ void CCatmullRom::CreateTrack()
 		(void*)(sizeof(glm::vec3) + sizeof(glm::vec2)));
 }
 
+void CCatmullRom::CreateTrackBarrier() {
+	
+	for (int i = 0; i < m_leftOffsetPoints.size(); i++) {
+		m_leftBarrierPoints.push_back(m_leftOffsetPoints[i]);
+		m_leftBarrierPoints.push_back(glm::vec3(m_leftOffsetPoints[i].x, m_leftOffsetPoints[i].y += 3, m_leftOffsetPoints[i].z));
+	}
+
+	m_leftBarrierPoints.push_back(m_leftOffsetPoints[0]);
+	m_leftBarrierPoints.push_back(glm::vec3(m_leftOffsetPoints[0].x, m_leftOffsetPoints[0].y, m_leftOffsetPoints[0].z));
+
+	m_leftBarrierPoints.push_back(m_leftOffsetPoints[1]);
+	m_leftBarrierPoints.push_back(glm::vec3(m_leftOffsetPoints[1].x, m_leftOffsetPoints[1].y, m_leftOffsetPoints[1].z));
+
+	m_leftBarrierPoints.push_back(m_leftOffsetPoints[2]);
+	m_leftBarrierPoints.push_back(glm::vec3(m_leftOffsetPoints[2].x, m_leftOffsetPoints[2].y, m_leftOffsetPoints[2].z));
+
+	for (int i = 0; i < m_rightOffsetPoints.size(); i++) {
+		m_rightBarrierPoints.push_back(m_rightOffsetPoints[i]);
+		m_rightBarrierPoints.push_back(glm::vec3(m_rightOffsetPoints[i].x, m_rightOffsetPoints[i].y += 3, m_rightOffsetPoints[i].z));
+	}
+
+	m_rightBarrierPoints.push_back(m_rightOffsetPoints[0]);
+	m_rightBarrierPoints.push_back(glm::vec3(m_rightOffsetPoints[0].x, m_rightOffsetPoints[0].y, m_rightOffsetPoints[0].z));
+
+	m_rightBarrierPoints.push_back(m_rightOffsetPoints[1]);
+	m_rightBarrierPoints.push_back(glm::vec3(m_rightOffsetPoints[1].x, m_rightOffsetPoints[1].y, m_rightOffsetPoints[1].z));
+
+	m_rightBarrierPoints.push_back(m_rightOffsetPoints[2]);
+	m_rightBarrierPoints.push_back(glm::vec3(m_rightOffsetPoints[2].x, m_rightOffsetPoints[2].y, m_rightOffsetPoints[2].z));
+
+	glm::vec3 normal(0.0f, 1.0f, 0.0f);
+
+	glGenVertexArrays(1, &m_vaoLeftBarrier);
+	glBindVertexArray(m_vaoLeftBarrier);
+
+	CVertexBufferObject vbo;
+	vbo.Create();
+	vbo.Bind();
+
+	for (int i = 0; i < m_leftBarrierPoints.size(); i++) {
+		vbo.AddData(&m_leftBarrierPoints[i], sizeof(glm::vec3));
+		vbo.AddData(&normal, sizeof(glm::vec3));
+	}
+
+	vbo.UploadDataToGPU(GL_STATIC_DRAW);
+
+	GLsizei stride = 2 * sizeof(glm::vec3);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, 0);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)sizeof(glm::vec3));
+
+	glGenVertexArrays(1, &m_vaoRightBarrier);
+	glBindVertexArray(m_vaoRightBarrier);
+
+	CVertexBufferObject vbo2;
+	vbo2.Create();
+	vbo2.Bind();
+
+	for (int i = 0; i < m_rightBarrierPoints.size(); i++) {
+		vbo2.AddData(&m_rightBarrierPoints[i], sizeof(glm::vec3));
+		vbo2.AddData(&normal, sizeof(glm::vec3));
+	}
+
+	vbo2.UploadDataToGPU(GL_STATIC_DRAW);
+
+	// Vertex curve positions
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, 0);
+
+	// Vertex curve positions
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)sizeof(glm::vec3));
+}
 
 void CCatmullRom::RenderCentreline()
 {
@@ -433,7 +509,15 @@ void CCatmullRom::RenderTrack()
 	//glLineWidth(1.0f);
 	m_texture.Bind();
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, m_vertexCount);
-	
+}
+
+void CCatmullRom::RenderTrackBarrier() {
+
+	glBindVertexArray(m_vaoLeftBarrier);
+	glDrawArrays(GL_TRIANGLE_STRIP, 1, m_leftBarrierPoints.size() - 1);
+
+	glBindVertexArray(m_vaoRightBarrier);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, m_rightBarrierPoints.size() - 1);
 }
 
 int CCatmullRom::CurrentLap(float d)

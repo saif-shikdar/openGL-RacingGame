@@ -208,6 +208,7 @@ void Game::Initialise()
 	m_pCatmullRom->CreateCentreline();
 	m_pCatmullRom->CreateOffsetCurves();
 	m_pCatmullRom->CreateTrack();
+	m_pCatmullRom->CreateTrackBarrier();
 }
 
 // Render method runs repeatedly in a loop
@@ -250,7 +251,6 @@ void Game::Render()
 	pMainProgram->SetUniform("material1.Md", glm::vec3(0.0f));	// Diffuse material reflectance
 	pMainProgram->SetUniform("material1.Ms", glm::vec3(0.0f));	// Specular material reflectance
 	pMainProgram->SetUniform("material1.shininess", 15.0f);		// Shininess material property
-		
 
 	// Render the skybox and terrain with full ambient reflectance 
 	modelViewMatrixStack.Push();
@@ -355,6 +355,7 @@ void Game::Render()
 	//m_pCatmullRom->RenderCentreline();
 	//m_pCatmullRom->RenderOffsetCurves();
 	m_pCatmullRom->RenderTrack();
+	m_pCatmullRom->RenderTrackBarrier();
 
 	// Draw the 2D graphics after the 3D graphics
 	DisplayFrameRate();
@@ -482,7 +483,7 @@ void Game::DisplayFrameRate()
 		glDisable(GL_DEPTH_TEST);
 		fontProgram->SetUniform("matrices.modelViewMatrix", glm::mat4(1));
 		fontProgram->SetUniform("matrices.projMatrix", m_pCamera->GetOrthographicProjectionMatrix());
-		fontProgram->SetUniform("vColour", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		fontProgram->SetUniform("vColour", glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
 		m_pFtFont->Render(20, height - 40, 25, "FPS: %d", m_framesPerSecond);
 		m_pFtFont->Render(20, height - 100, 25, "LAP: %d / 3", lap_number);
 		m_pFtFont->Render(width - 400, height - 40, 25, "POSITION: %f %f", ship_position.x, ship_position.z);

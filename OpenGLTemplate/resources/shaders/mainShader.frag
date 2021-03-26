@@ -14,8 +14,6 @@ in vec3 worldPosition;
 
 void main()
 {
-
-
 	if (renderSkybox) {
 		vOutputColour = texture(CubeMapTex, worldPosition);
 
@@ -29,6 +27,4 @@ void main()
 		else
 			vOutputColour = vec4(vColour, 1.0f);	// Just use the colour instead
 	}
-	
-	
 }

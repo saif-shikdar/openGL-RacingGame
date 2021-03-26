@@ -21,6 +21,8 @@ public:
 
 	void CreateTrack();
 	void RenderTrack();
+	void CreateTrackBarrier();
+	void RenderTrackBarrier();
 
 	int CurrentLap(float d); // Return the currvent lap (starting from 0) based on distance along the control curve.
 
@@ -42,6 +44,8 @@ private:
 	GLuint m_vaoRightOffsetCurve;
 	GLuint m_vaoTrack;
 	GLuint m_vaoTrack2;
+	GLuint m_vaoLeftBarrier;
+	GLuint m_vaoRightBarrier;
 
 	static glm::vec3 _dummy_vector;
 	vector<glm::vec3> m_controlPoints;		// Control points, which are interpolated to produce the centreline points
@@ -51,7 +55,10 @@ private:
 
 	vector<glm::vec3> m_leftOffsetPoints;	// Left offset curve points
 	vector<glm::vec3> m_rightOffsetPoints;	// Right offset curve points
-	vector<glm::vec3> m_triPoints;
+	vector<glm::vec3> m_triPoints;			// Triangle Points
+
+	vector<glm::vec3> m_leftBarrierPoints;	// Left Barrier Points
+	vector<glm::vec3> m_rightBarrierPoints;	// Right Barrier Points
 
 
 	unsigned int m_vertexCount;				// Number of vertices in the track VBO
