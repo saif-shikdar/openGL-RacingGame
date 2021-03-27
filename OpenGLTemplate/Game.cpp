@@ -31,6 +31,8 @@ Source code drawn from a number of sources and examples, including contributions
 #include "Shaders.h"
 #include "FreeTypeFont.h"
 #include "Sphere.h"
+#include "Cube.h"
+#include "Tetrahedron.h"
 #include "MatrixStack.h"
 #include "OpenAssetImportMesh.h"
 #include "Audio.h"
@@ -50,6 +52,8 @@ Game::Game()
 	m_asteroid = NULL;
 	m_pad = NULL;
 	m_pSphere = NULL;
+	m_pCube = NULL;
+	m_pTetrahedron = NULL;
 	m_pHighResolutionTimer = NULL;
 	m_pAudio = NULL;
 	m_pCatmullRom = NULL;
@@ -61,7 +65,6 @@ Game::Game()
 	m_currentDistance = 0.0f;
 	m_cameraSpeed = 0.0f;
 	ship_position = glm::vec3();
-	pad_pos = glm::vec3();
 	ship_rotation = glm::mat4();
 	lap_number = 1;
 	pedalUp = false;
@@ -73,6 +76,8 @@ Game::Game()
 	p = glm::vec3();
 	offsetPos = 0;
 	boostActive = false;
+	time = 0;
+	hitClock1 = false;
 }
 
 // Destructor
@@ -89,6 +94,8 @@ Game::~Game()
 	delete m_asteroid;
 	delete m_pad;
 	delete m_pSphere;
+	delete m_pCube;
+	delete m_pTetrahedron;
 	delete m_pAudio;
 	delete m_pCatmullRom;
 
@@ -121,6 +128,8 @@ void Game::Initialise()
 	m_asteroid = new COpenAssetImportMesh;
 	m_pad = new COpenAssetImportMesh;
 	m_pSphere = new CSphere;
+	m_pCube = new CCube;
+	m_pTetrahedron = new CTetrahedron;
 	m_pAudio = new CAudio;
 	m_pCatmullRom = new CCatmullRom;
 
@@ -140,6 +149,8 @@ void Game::Initialise()
 	sShaderFileNames.push_back("mainShader.frag");
 	sShaderFileNames.push_back("textShader.vert");
 	sShaderFileNames.push_back("textShader.frag");
+	sShaderFileNames.push_back("sphereShader.vert");
+	sShaderFileNames.push_back("sphereShader.frag");
 
 	for (int i = 0; i < (int) sShaderFileNames.size(); i++) {
 		string sExt = sShaderFileNames[i].substr((int) sShaderFileNames[i].size()-4, 4);
@@ -159,6 +170,7 @@ void Game::Initialise()
 	pMainProgram->CreateProgram();
 	pMainProgram->AddShaderToProgram(&shShaders[0]);
 	pMainProgram->AddShaderToProgram(&shShaders[1]);
+	//pMainProgram->AddShaderToProgram(&shShaders[2]);
 	pMainProgram->LinkProgram();
 	m_pShaderPrograms->push_back(pMainProgram);
 
@@ -173,11 +185,8 @@ void Game::Initialise()
 	// You can follow this pattern to load additional shaders
 
 	// Create the skybox
-	// Skybox downloaded from http://www.akimbo.in/forum/viewtopic.php?f=10&t=9
+	// Skybox downloaded from https://wallpaperaccess.com/full/296718.jpg on 23/03/21
 	m_pSkybox->Create(2500.0f);
-	
-	// Create the planar terrain
-	//m_pPlanarTerrain->Create("resources\\textures\\", "grassfloor01.jpg", 2000.0f, 2000.0f, 50.0f); // Texture downloaded from http://www.psionicgames.com/?page_id=26 on 24 Jan 2013
 
 	m_pFtFont->LoadSystemFont("arial.ttf", 32);
 	m_pFtFont->SetShaderProgram(pFontProgram);
@@ -191,6 +200,11 @@ void Game::Initialise()
 
 	// Create a sphere
 	m_pSphere->Create("resources\\textures\\", "dirtpile01.jpg", 25, 25);  // Texture downloaded from http://www.psionicgames.com/?page_id=26 on 24 Jan 2013
+
+	m_pCube->Create("resources\\textures\\clock.jpg"); // Texture downloaded from https://www.dreamstime.com/cartoon-blue-alarm-clock-hand-drawn-vector-illustration-isolated-white-background-cartoon-blue-alarm-clock-image119167009 on 27/03/21
+
+	m_pTetrahedron->Create("resources\\textures\\dirtpile01.jpg"); 
+
 	glEnable(GL_CULL_FACE);
 
 	// Initialise audio and play background music
@@ -243,6 +257,7 @@ void Game::Render()
 	
 	// Set light and materials in main shader program
 	glm::vec4 lightPosition1 = glm::vec4(-100, 100, -100, 1); // Position of light source *in world coordinates*
+	glm::vec4 lightPosition2(50, 100, 50, 1); // Position of light source *in world coordinates*
 	pMainProgram->SetUniform("light1.position", viewMatrix*lightPosition1); // Position of light source *in eye coordinates*
 	pMainProgram->SetUniform("light1.La", glm::vec3(1.0f));		// Ambient colour of light
 	pMainProgram->SetUniform("light1.Ld", glm::vec3(1.0f));		// Diffuse colour of light
@@ -251,6 +266,30 @@ void Game::Render()
 	pMainProgram->SetUniform("material1.Md", glm::vec3(0.0f));	// Diffuse material reflectance
 	pMainProgram->SetUniform("material1.Ms", glm::vec3(0.0f));	// Specular material reflectance
 	pMainProgram->SetUniform("material1.shininess", 15.0f);		// Shininess material property
+
+	/*// Switch to the sphere program
+	CShaderProgram* pSphereProgram = (*m_pShaderPrograms)[1];
+	pSphereProgram->UseProgram();
+
+	// Set light and materials in sphere programme
+	pSphereProgram->SetUniform("light1.position", viewMatrix * lightPosition1);
+	pSphereProgram->SetUniform("light1.La", glm::vec3(1.0f, 0.0f, 1.0f));
+	pSphereProgram->SetUniform("light1.Ld", glm::vec3(1.0f, 0.0f, 1.0f));
+	pSphereProgram->SetUniform("light1.Ls", glm::vec3(1.0f, 0.0f, 1.0f));
+	pSphereProgram->SetUniform("light1.direction", glm::normalize(viewNormalMatrix * glm::vec3(0, -1, 0)));
+	pSphereProgram->SetUniform("light1.exponent", 20.0f);
+	pSphereProgram->SetUniform("light1.cutoff", 30.0f);
+	pSphereProgram->SetUniform("light2.position", viewMatrix * lightPosition2);
+	pSphereProgram->SetUniform("light2.La", glm::vec3(1.0f, 1.0f, 0.0f));
+	pSphereProgram->SetUniform("light2.Ld", glm::vec3(1.0f, 1.0f, 0.0f));
+	pSphereProgram->SetUniform("light2.Ls", glm::vec3(1.0f, 1.0f, 0.0f));
+	pSphereProgram->SetUniform("light2.direction", glm::normalize(viewNormalMatrix * glm::vec3(0, -1, 0)));
+	pSphereProgram->SetUniform("light2.exponent", 20.0f);
+	pSphereProgram->SetUniform("light2.cutoff", 30.0f);
+	pSphereProgram->SetUniform("material1.shininess", 15.0f);
+	pSphereProgram->SetUniform("material1.Ma", glm::vec3(0.0f, 0.0f, 0.2f));
+	pSphereProgram->SetUniform("material1.Md", glm::vec3(0.0f, 0.0f, 1.0f));
+	pSphereProgram->SetUniform("material1.Ms", glm::vec3(1.0f, 1.0f, 1.0f));*/
 
 	// Render the skybox and terrain with full ambient reflectance 
 	modelViewMatrixStack.Push();
@@ -264,21 +303,20 @@ void Game::Render()
 		pMainProgram->SetUniform("renderSkybox", false);
 	modelViewMatrixStack.Pop();
 
-	/*// Render the planar terrain
-	modelViewMatrixStack.Push();
-		pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
-		pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
-		m_pPlanarTerrain->Render();
-	modelViewMatrixStack.Pop();*/
-
 	modelViewMatrixStack.Push(); {
-		//modelViewMatrixStack.Rotate(glm::vec3(0, 1, 0), m_rotY);
-		//modelViewMatrixStack.Translate(glm::vec3(5, 0, 0));
 
 		modelViewMatrixStack.Push(); {
 			modelViewMatrixStack.Rotate(glm::vec3(0, 1, 0), m_rotY);
 			modelViewMatrixStack.Translate(glm::vec3(1000, 30, 0));
 			modelViewMatrixStack.Scale(100.0);
+			pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
+			m_pSphere->Render();
+		} modelViewMatrixStack.Pop();
+
+		modelViewMatrixStack.Push(); {
+			modelViewMatrixStack.Rotate(glm::vec3(1, 0, 0), m_rotY);
+			modelViewMatrixStack.Translate(glm::vec3(100, 30, 700));
+			modelViewMatrixStack.Scale(30.0);
 			pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
 			m_pSphere->Render();
 		} modelViewMatrixStack.Pop();
@@ -310,43 +348,101 @@ void Game::Render()
 	m_ship->Render();
 	modelViewMatrixStack.Pop();
 
+	// Render the tetrahedron
+	modelViewMatrixStack.Push();
+	modelViewMatrixStack.Translate(glm::vec3(0.0f, 50.0f, 500.f));
+	modelViewMatrixStack.Rotate(glm::vec3(1.0f, 0.0f, 0.0f), 300);
+	modelViewMatrixStack.Scale(100.0f);
+	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
+	pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
+	m_pTetrahedron->Render();
+	modelViewMatrixStack.Pop();
+
+	// Render the cube
+	modelViewMatrixStack.Push();
+	modelViewMatrixStack.Translate(glm::vec3(50.0f, 10.0f, 95.0f));
+	modelViewMatrixStack.Rotate(glm::vec3(1.0f, 0.0f, 0.0f), m_rotY);
+	modelViewMatrixStack.Scale(4.0f);
+	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
+	pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
+	if (!hitClock1) {
+		m_pCube->Render();
+	}
+	modelViewMatrixStack.Pop();
+
+	// Render the cube2
+	modelViewMatrixStack.Push();
+	modelViewMatrixStack.Translate(glm::vec3(-282.f, 56.0f, -152.0f));
+	modelViewMatrixStack.Rotate(glm::vec3(1.0f, 0.0f, 0.0f), m_rotY);
+	modelViewMatrixStack.Scale(4.0f);
+	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
+	pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
+	if (!hitClock2) {
+		m_pCube->Render();
+	}
+	modelViewMatrixStack.Pop();
+
+	// Render the cube3
+	modelViewMatrixStack.Push();
+	modelViewMatrixStack.Translate(glm::vec3(220.f, 35.0f, -107.0f));
+	modelViewMatrixStack.Rotate(glm::vec3(1.0f, 0.0f, 0.0f), m_rotY);
+	modelViewMatrixStack.Scale(4.0f);
+	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
+	pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
+	if (!hitClock3) {
+		m_pCube->Render();
+	}
+	modelViewMatrixStack.Pop();
+
+	// Render the cube4
+	modelViewMatrixStack.Push();
+	modelViewMatrixStack.Translate(glm::vec3(458.f, 10.0f, -284.0f));
+	modelViewMatrixStack.Rotate(glm::vec3(1.0f, 0.0f, 0.0f), m_rotY);
+	modelViewMatrixStack.Scale(4.0f);
+	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
+	pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
+	if (!hitClock4) {
+		m_pCube->Render();
+	}
+	modelViewMatrixStack.Pop();
+
+	// Render the cube5
+	modelViewMatrixStack.Push();
+	modelViewMatrixStack.Translate(glm::vec3(654.f, 78.0f, -33.0f));
+	modelViewMatrixStack.Rotate(glm::vec3(1.0f, 0.0f, 0.0f), m_rotY);
+	modelViewMatrixStack.Scale(4.0f);
+	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
+	pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
+	if (!hitClock5) {
+		m_pCube->Render();
+	}
+	modelViewMatrixStack.Pop();
+
 	// Render the pad
 	modelViewMatrixStack.Push();
-	pad_pos = glm::vec3(-24, 2.5, -650);
-	modelViewMatrixStack.Translate(pad_pos);
+	modelViewMatrixStack.Translate(glm::vec3(-24, 2.5, -650));
 	modelViewMatrixStack.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), 3.f);
 	modelViewMatrixStack.Scale(3.5f);
 	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
 	pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
 	m_pad->Render();
 	modelViewMatrixStack.Pop();
-	
-	// Render the barrel 
-	modelViewMatrixStack.Push();
-		modelViewMatrixStack.Translate(glm::vec3(100.0f, 0.0f, 0.0f));
-		modelViewMatrixStack.Scale(5.0f);
-		pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
-		pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
-		m_pBarrelMesh->Render();
-	modelViewMatrixStack.Pop();
-	
 
-	// Render the sphere
+	// Render the pad2
 	modelViewMatrixStack.Push();
-		modelViewMatrixStack.Translate(glm::vec3(0.0f, 2.0f, 150.0f));
-		modelViewMatrixStack.Scale(2.0f);
-		pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
-		pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
-		// To turn off texture mapping and use the sphere colour only (currently white material), uncomment the next line
-		//pMainProgram->SetUniform("bUseTexture", false);
-		m_pSphere->Render();
+	modelViewMatrixStack.Translate(glm::vec3(493, 70.0f, -115));
+	modelViewMatrixStack.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), 7.3f);
+	modelViewMatrixStack.Scale(3.5f);
+	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
+	pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
+	m_pad->Render();
 	modelViewMatrixStack.Pop();
 		
 	modelViewMatrixStack.Push();
 	pMainProgram->SetUniform("bUseTexture", true); // turn off texturing
 	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
 	pMainProgram->SetUniform("matrices.normalMatrix",
-		m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
+	m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
 	
 
 	// Render your object here
@@ -373,7 +469,13 @@ void Game::Update()
 	//m_pCamera->Set(glm::vec3(0, 300, 0), glm::vec3(0, 0, 0), glm::vec3(1, 0, 0));
 	m_pCamera->Update(m_dt);
 
+	if (!raceFinished) {
+		time += m_dt;
+	}
+
 	m_rotY += 0.0005f * m_dt;
+
+	// If up button is not held it will decelerate back to 0. If boost activated it will slowly decrease back to top speed.
 
 	if (!pedalUp) {
 		if (m_cameraSpeed >= 0) {
@@ -391,14 +493,51 @@ void Game::Update()
 		}
 	}
 
+	// If speed goes below zero it corrects itself back to zero
+
 	if (m_cameraSpeed < 0) {
 		m_cameraSpeed = 0;
 	}
 
-	if (checkDistance(pad_pos)) {
+	// Checks collision for boost pads. If collision occurs it will activate boost.
+
+	if (checkDistance(glm::vec3(-24, 2.5, -650))) {
 		if (pedalUp) {
 			m_cameraSpeed = 0.3;
 		}	
+	}
+
+	if (checkDistance(glm::vec3(493, 70.0f, -115))) {
+		if (pedalUp) {
+			m_cameraSpeed = 0.3;
+		}
+	}
+
+	// Checks collision for clock powerups. If collision occurs it will decrease time by 5 secs.
+
+	if (checkDistance(glm::vec3(50.0f, 10.0f, 95.0f))) {
+		hitClock1 = true;
+		time -= 50.0f;
+	}
+
+	if (checkDistance(glm::vec3(-282.f, 56.0f, -152.0f))) {
+		hitClock2 = true;
+		time -= 50.0f;
+	}
+
+	if (checkDistance(glm::vec3(220.f, 35.0f, -107.0f))) {
+		hitClock3 = true;
+		time -= 50.0f;
+	}
+
+	if (checkDistance(glm::vec3(458.f, 10.0f, -284.0f))) {
+		hitClock4 = true;
+		time -= 50.0f;
+	}
+
+	if (checkDistance(glm::vec3(654.f, 78.0f, -33.0f))) {
+		hitClock5 = true;
+		time -= 50.0f;
 	}
 
 	m_dt * 0.1f;
@@ -410,7 +549,7 @@ void Game::Update()
 	m_pCatmullRom->Sample(m_currentDistance + 1.0f, pNext);
 
 	camT = glm::normalize(pNext - p);
-	camN = glm::normalize(glm::cross(camT, glm::vec3(0, 1, 0)));
+	camN = glm::normalize(glm::cross(camT, glm::vec3(0,1,0)));
 	camB = glm::normalize(glm::cross(camN, camT));
 
 	lap_number = m_pCatmullRom->CurrentLap(m_currentDistance) + 1;
@@ -423,6 +562,8 @@ void Game::Update()
 
 	m_pAudio->Update();
 }
+
+// Camera switch method controlled using number keys.
 
 void Game::SwitchCamera() {
 
@@ -488,29 +629,25 @@ void Game::DisplayFrameRate()
 		m_pFtFont->Render(20, height - 100, 25, "LAP: %d / 3", lap_number);
 		m_pFtFont->Render(width - 400, height - 40, 25, "POSITION: %f %f", ship_position.x, ship_position.z);
 		m_pFtFont->Render(width - 161, height - 510, 25, "SPEED: %f KPH", m_cameraSpeed * 1000);
+		m_pFtFont->Render(20, height - 510, 25, "Time Elapsed: %f", time / 1000);
+		if (lap_number > 3) {
+			m_pFtFont->Render(width - 600, height - 200, 50, "RACE COMPLETE");
+			pedalUp = false;
+			raceFinished = true;
+			m_pFtFont->Render(width - 650, height - 250, 50, "TIME TAKEN : %f", time / 1000);
+		}
 	}
 }
 
 // The game loop runs repeatedly until game over
 void Game::GameLoop()
 {
-	/*
-	// Fixed timer
-	dDt = pHighResolutionTimer->Elapsed();
-	if (dDt > 1000.0 / (double) Game::FPS) {
-		pHighResolutionTimer->Start();
-		Update();
-		Render();
-	}
-	*/
-	
+
 	// Variable timer
 	m_pHighResolutionTimer->Start();
 	Update();
 	Render();
 	m_dt = m_pHighResolutionTimer->Elapsed();
-	
-
 }
 
 
@@ -605,21 +742,29 @@ LRESULT Game::ProcessEvents(HWND window,UINT message, WPARAM w_param, LPARAM l_p
 			camView = 3;
 			break;
 		case VK_UP:
-			pedalUp = true;
+			if (!raceFinished) {
+				pedalUp = true;
+			}
 			break;
 		case VK_DOWN:
-			if (m_cameraSpeed >= 0.005) {
-				m_cameraSpeed -= 0.005 * m_dt;
+			if (!raceFinished) {
+				if (m_cameraSpeed >= 0.005) {
+					m_cameraSpeed -= 0.005 * m_dt;
+				}
 			}
 			break;
 		case VK_LEFT:
-			if (offsetPos > -20) {
-				offsetPos -= 1.0f * m_dt;
+			if (!raceFinished) {
+				if (offsetPos > -20) {
+					offsetPos -= 1.0f * m_dt;
+				}
 			}
 			break;
 		case VK_RIGHT:
-			if (offsetPos < 20) {
-				offsetPos += 1.0f * m_dt;
+			if (!raceFinished) {
+				if (offsetPos < 20) {
+					offsetPos += 1.0f * m_dt;
+				}
 			}
 			break;
 		}

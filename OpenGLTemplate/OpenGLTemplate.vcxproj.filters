@@ -15,6 +15,9 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{8bf5c3e1-be9e-4c62-8c2d-5c0d5c307b94}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\BasicShapes">
+      <UniqueIdentifier>{7bb6b915-fecf-4aea-a1aa-bd0f437133c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Audio.h">
@@ -71,6 +74,12 @@
     <ClInclude Include="CatmullRom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Cube.h">
+      <Filter>Header Files\BasicShapes</Filter>
+    </ClInclude>
+    <ClInclude Include="Tetrahedron.h">
+      <Filter>Header Files\BasicShapes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Audio.cpp">
@@ -124,7 +133,10 @@
     <ClCompile Include="CatmullRom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="House.cpp">
+    <ClCompile Include="Cube.cpp">
+      <Filter>Source Files\BasicShapes</Filter>
+    </ClCompile>
+    <ClCompile Include="Tetrahedron.cpp">
       <Filter>Source Files\BasicShapes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -141,7 +153,13 @@
     <None Include="resources\shaders\textShader.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="BlurShader.frag">
+    <None Include="resources\shaders\sphereShader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="resources\shaders\sphereShader.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="fogShader.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

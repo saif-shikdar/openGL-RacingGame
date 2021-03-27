@@ -124,6 +124,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CatmullRom.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="Cube.h" />
     <ClInclude Include="Cubemap.h" />
     <ClInclude Include="FreeTypeFont.h" />
     <ClInclude Include="Game.h" />
@@ -135,6 +136,7 @@
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="Sphere.h" />
+    <ClInclude Include="Tetrahedron.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="VertexBufferObject.h" />
     <ClInclude Include="VertexBufferObjectIndexed.h" />
@@ -143,26 +145,29 @@
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CatmullRom.cpp" />
+    <ClCompile Include="Cube.cpp" />
     <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="FreeTypeFont.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameWindow.cpp" />
     <ClCompile Include="HighResolutionTimer.cpp" />
-    <ClCompile Include="House.cpp" />
     <ClCompile Include="MatrixStack.cpp" />
     <ClCompile Include="OpenAssetImportMesh.cpp" />
     <ClCompile Include="Plane.cpp" />
     <ClCompile Include="Shaders.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="Tetrahedron.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VertexBufferObject.cpp" />
     <ClCompile Include="VertexBufferObjectIndexed.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="BlurShader.frag" />
+    <None Include="fogShader.frag" />
     <None Include="resources\shaders\mainShader.frag" />
     <None Include="resources\shaders\mainShader.vert" />
+    <None Include="resources\shaders\sphereShader.frag" />
+    <None Include="resources\shaders\sphereShader.vert" />
     <None Include="resources\shaders\textShader.frag" />
     <None Include="resources\shaders\textShader.vert" />
   </ItemGroup>

@@ -14,6 +14,8 @@ class CPlane;
 class CFreeTypeFont;
 class CHighResolutionTimer;
 class CSphere;
+class CCube;
+class CTetrahedron;
 class COpenAssetImportMesh;
 class CAudio;
 class CCatmullRom;
@@ -38,6 +40,8 @@ private:
 	COpenAssetImportMesh* m_pad;
 
 	CSphere *m_pSphere;
+	CCube* m_pCube;
+	CTetrahedron* m_pTetrahedron;
 	CHighResolutionTimer *m_pHighResolutionTimer;
 	CAudio *m_pAudio;
 	CCatmullRom *m_pCatmullRom;
@@ -47,7 +51,6 @@ private:
 	int m_framesPerSecond;
 	bool m_appActive;
 	glm::vec3 ship_position;
-	glm::vec3 pad_pos;
 	glm::mat4 ship_rotation;
 	int lap_number;
 	
@@ -83,4 +86,12 @@ private:
 	float m_rotY;
 	float offsetPos;
 	bool boostActive;
+	bool raceFinished;
+	float time;
+	bool hitClock1;
+	bool hitClock2;
+	bool hitClock3;
+	bool hitClock4;
+	bool hitClock5;
+
 };
