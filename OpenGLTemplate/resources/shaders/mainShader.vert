@@ -28,7 +28,9 @@ struct MaterialInfo
 
 // Lights and materials passed in as uniform variables from client programme
 uniform LightInfo light1; 
-uniform MaterialInfo material1; 
+uniform MaterialInfo material1;
+uniform LightInfo light2; 
+uniform MaterialInfo material2;
 
 // Layout of vertex attributes in VBO
 layout (location = 0) in vec3 inPosition;

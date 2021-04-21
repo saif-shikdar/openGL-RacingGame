@@ -153,12 +153,6 @@
     <None Include="resources\shaders\textShader.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="resources\shaders\sphereShader.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="resources\shaders\sphereShader.vert">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="fogShader.frag">
       <Filter>Shaders</Filter>
     </None>

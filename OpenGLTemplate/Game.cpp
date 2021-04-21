@@ -78,6 +78,11 @@ Game::Game()
 	boostActive = false;
 	time = 0;
 	hitClock1 = false;
+	hitClock2 = false;
+	hitClock3 = false;
+	hitClock4 = false;
+	hitClock5 = false;
+	camAngleX = 0;
 }
 
 // Destructor
@@ -149,8 +154,6 @@ void Game::Initialise()
 	sShaderFileNames.push_back("mainShader.frag");
 	sShaderFileNames.push_back("textShader.vert");
 	sShaderFileNames.push_back("textShader.frag");
-	sShaderFileNames.push_back("sphereShader.vert");
-	sShaderFileNames.push_back("sphereShader.frag");
 
 	for (int i = 0; i < (int) sShaderFileNames.size(); i++) {
 		string sExt = sShaderFileNames[i].substr((int) sShaderFileNames[i].size()-4, 4);
@@ -257,7 +260,8 @@ void Game::Render()
 	
 	// Set light and materials in main shader program
 	glm::vec4 lightPosition1 = glm::vec4(-100, 100, -100, 1); // Position of light source *in world coordinates*
-	glm::vec4 lightPosition2(50, 100, 50, 1); // Position of light source *in world coordinates*
+	//glm::vec4 lightPosition2 = glm::vec4(ship_position + glm::vec3(0,2,0), 1); // Position of light source *in world coordinates*
+	//glm::vec4 lightPosition2(50, 100, 50, 1); // Position of light source *in world coordinates*
 	pMainProgram->SetUniform("light1.position", viewMatrix*lightPosition1); // Position of light source *in eye coordinates*
 	pMainProgram->SetUniform("light1.La", glm::vec3(1.0f));		// Ambient colour of light
 	pMainProgram->SetUniform("light1.Ld", glm::vec3(1.0f));		// Diffuse colour of light
@@ -266,30 +270,6 @@ void Game::Render()
 	pMainProgram->SetUniform("material1.Md", glm::vec3(0.0f));	// Diffuse material reflectance
 	pMainProgram->SetUniform("material1.Ms", glm::vec3(0.0f));	// Specular material reflectance
 	pMainProgram->SetUniform("material1.shininess", 15.0f);		// Shininess material property
-
-	/*// Switch to the sphere program
-	CShaderProgram* pSphereProgram = (*m_pShaderPrograms)[1];
-	pSphereProgram->UseProgram();
-
-	// Set light and materials in sphere programme
-	pSphereProgram->SetUniform("light1.position", viewMatrix * lightPosition1);
-	pSphereProgram->SetUniform("light1.La", glm::vec3(1.0f, 0.0f, 1.0f));
-	pSphereProgram->SetUniform("light1.Ld", glm::vec3(1.0f, 0.0f, 1.0f));
-	pSphereProgram->SetUniform("light1.Ls", glm::vec3(1.0f, 0.0f, 1.0f));
-	pSphereProgram->SetUniform("light1.direction", glm::normalize(viewNormalMatrix * glm::vec3(0, -1, 0)));
-	pSphereProgram->SetUniform("light1.exponent", 20.0f);
-	pSphereProgram->SetUniform("light1.cutoff", 30.0f);
-	pSphereProgram->SetUniform("light2.position", viewMatrix * lightPosition2);
-	pSphereProgram->SetUniform("light2.La", glm::vec3(1.0f, 1.0f, 0.0f));
-	pSphereProgram->SetUniform("light2.Ld", glm::vec3(1.0f, 1.0f, 0.0f));
-	pSphereProgram->SetUniform("light2.Ls", glm::vec3(1.0f, 1.0f, 0.0f));
-	pSphereProgram->SetUniform("light2.direction", glm::normalize(viewNormalMatrix * glm::vec3(0, -1, 0)));
-	pSphereProgram->SetUniform("light2.exponent", 20.0f);
-	pSphereProgram->SetUniform("light2.cutoff", 30.0f);
-	pSphereProgram->SetUniform("material1.shininess", 15.0f);
-	pSphereProgram->SetUniform("material1.Ma", glm::vec3(0.0f, 0.0f, 0.2f));
-	pSphereProgram->SetUniform("material1.Md", glm::vec3(0.0f, 0.0f, 1.0f));
-	pSphereProgram->SetUniform("material1.Ms", glm::vec3(1.0f, 1.0f, 1.0f));*/
 
 	// Render the skybox and terrain with full ambient reflectance 
 	modelViewMatrixStack.Push();
@@ -357,7 +337,7 @@ void Game::Render()
 	pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
 	m_pTetrahedron->Render();
 	modelViewMatrixStack.Pop();
-
+	
 	// Render the cube
 	modelViewMatrixStack.Push();
 	modelViewMatrixStack.Translate(glm::vec3(50.0f, 10.0f, 95.0f));
@@ -503,13 +483,13 @@ void Game::Update()
 
 	if (checkDistance(glm::vec3(-24, 2.5, -650))) {
 		if (pedalUp) {
-			m_cameraSpeed = 0.3;
+			m_cameraSpeed = 0.4;
 		}	
 	}
 
 	if (checkDistance(glm::vec3(493, 70.0f, -115))) {
 		if (pedalUp) {
-			m_cameraSpeed = 0.3;
+			m_cameraSpeed = 0.4;
 		}
 	}
 
@@ -538,6 +518,23 @@ void Game::Update()
 	if (checkDistance(glm::vec3(654.f, 78.0f, -33.0f))) {
 		hitClock5 = true;
 		time -= 50.0f;
+	}
+
+	if (m_cameraSpeed > 0.18) {
+		if (camAngleX == 0) {
+			camAngleX += 0.01;
+		}
+		else {
+			if (camAngleX > 0) {
+				camAngleX -= 0.01;
+			}
+			else {
+				camAngleX += 0.01;
+			}
+		}
+	}
+	else {
+		camAngleX = 0;
 	}
 
 	m_dt * 0.1f;
@@ -570,7 +567,7 @@ void Game::SwitchCamera() {
 	switch (camView)
 	{
 	case 0:
-		m_pCamera->Set(p + (15.f * camB) - (45.f * camT), p - 15.0f * camT, glm::vec3(0, 1, 0));
+		m_pCamera->Set(p + (15.f * camB) - (45.f * camT), p - 15.0f * camT, glm::vec3(camAngleX, 1, 0));
 		break;
 	case 1:
 		m_pCamera->Set(p + (50.f * camB) - (45.f * camT), p - 15.0f * camT, glm::vec3(0, 1, 0));

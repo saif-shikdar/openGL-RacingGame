@@ -31,11 +31,11 @@ void CTetrahedron::Create(string filename)
 
 	// Normals
 
-	glm::vec3 frontFace = glm::vec3(-1, 0, -1);
-	glm::vec3 backFace = glm::vec3(1, 0, 1);
-	glm::vec3 leftFace = glm::vec3(0, -1, -1);
-	glm::vec3 rightFace = glm::vec3(0, -1, 1);
-	glm::vec3 bottomFace = glm::vec3(0, 0, -1);
+	glm::vec3 frontFace = glm::vec3(0, 0, 0);
+	glm::vec3 backFace = glm::vec3(0, 0, 0);
+	glm::vec3 leftFace = glm::vec3(0, 0, 0);
+	glm::vec3 rightFace = glm::vec3(0, 0, 0);
+	glm::vec3 bottomFace = glm::vec3(0, 0, 0);
 
 	// Texture Coords
 
@@ -72,13 +72,13 @@ void CTetrahedron::Create(string filename)
 
 	m_VBO.AddData(&v0, sizeof(glm::vec3));
 	m_VBO.AddData(&t1, sizeof(glm::vec2));
-	m_VBO.AddData(&rightFace, sizeof(glm::vec3));
+	m_VBO.AddData(&backFace, sizeof(glm::vec3));
 	m_VBO.AddData(&v3, sizeof(glm::vec3));
 	m_VBO.AddData(&t0, sizeof(glm::vec2));
-	m_VBO.AddData(&rightFace, sizeof(glm::vec3));
+	m_VBO.AddData(&backFace, sizeof(glm::vec3));
 	m_VBO.AddData(&v4, sizeof(glm::vec3));
 	m_VBO.AddData(&t3, sizeof(glm::vec2));
-	m_VBO.AddData(&rightFace, sizeof(glm::vec3));
+	m_VBO.AddData(&backFace, sizeof(glm::vec3));
 
 	// LeftFace
 

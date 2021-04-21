@@ -166,8 +166,6 @@
     <None Include="fogShader.frag" />
     <None Include="resources\shaders\mainShader.frag" />
     <None Include="resources\shaders\mainShader.vert" />
-    <None Include="resources\shaders\sphereShader.frag" />
-    <None Include="resources\shaders\sphereShader.vert" />
     <None Include="resources\shaders\textShader.frag" />
     <None Include="resources\shaders\textShader.vert" />
   </ItemGroup>

@@ -93,5 +93,5 @@ private:
 	bool hitClock3;
 	bool hitClock4;
 	bool hitClock5;
-
+	float camAngleX;
 };
