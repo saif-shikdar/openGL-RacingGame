@@ -29,8 +29,6 @@ struct MaterialInfo
 // Lights and materials passed in as uniform variables from client programme
 uniform LightInfo light1; 
 uniform MaterialInfo material1;
-uniform LightInfo light2; 
-uniform MaterialInfo material2;
 
 // Layout of vertex attributes in VBO
 layout (location = 0) in vec3 inPosition;
@@ -40,8 +38,10 @@ layout (location = 2) in vec3 inNormal;
 // Vertex colour output to fragment shader -- using Gouraud (interpolated) shading
 out vec3 vColour;	// Colour computed using reflectance model
 out vec2 vTexCoord;	// Texture coordinate
-
+out vec3 eyeNorm;
+out vec4 eyePos;
 out vec3 worldPosition;	// used for skybox
+out MaterialInfo materialSpotlight;
 
 // This function implements the Phong shading model
 // The code is based on the OpenGL 4.0 Shading Language Cookbook, Chapter 2, pp. 62 - 63, with a few tweaks. 
@@ -69,7 +69,7 @@ vec3 PhongModel(vec4 eyePosition, vec3 eyeNorm)
 void main()
 {	
 
-// Save the world position for rendering the skybox
+	// Save the world position for rendering the skybox
 	worldPosition = inPosition;
 
 	// Transform the vertex spatial position using 
@@ -84,5 +84,10 @@ void main()
 	
 	// Pass through the texture coordinate
 	vTexCoord = inCoord;
+
+	eyeNorm = vEyeNorm;
+	eyePos = vEyePosition;
+
+	materialSpotlight = material1;
 } 
 	

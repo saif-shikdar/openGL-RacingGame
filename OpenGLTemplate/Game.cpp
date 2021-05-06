@@ -74,6 +74,7 @@ Game::Game()
 	camN = glm::vec3();
 	camT = glm::vec3();
 	p = glm::vec3();
+	pNext = glm::vec3();
 	offsetPos = 0;
 	boostActive = false;
 	time = 0;
@@ -154,6 +155,8 @@ void Game::Initialise()
 	sShaderFileNames.push_back("mainShader.frag");
 	sShaderFileNames.push_back("textShader.vert");
 	sShaderFileNames.push_back("textShader.frag");
+	//sShaderFileNames.push_back("headlightShader.vert");
+	//sShaderFileNames.push_back("headlightShader.frag");
 
 	for (int i = 0; i < (int) sShaderFileNames.size(); i++) {
 		string sExt = sShaderFileNames[i].substr((int) sShaderFileNames[i].size()-4, 4);
@@ -173,7 +176,6 @@ void Game::Initialise()
 	pMainProgram->CreateProgram();
 	pMainProgram->AddShaderToProgram(&shShaders[0]);
 	pMainProgram->AddShaderToProgram(&shShaders[1]);
-	//pMainProgram->AddShaderToProgram(&shShaders[2]);
 	pMainProgram->LinkProgram();
 	m_pShaderPrograms->push_back(pMainProgram);
 
@@ -186,6 +188,14 @@ void Game::Initialise()
 	m_pShaderPrograms->push_back(pFontProgram);
 
 	// You can follow this pattern to load additional shaders
+
+	/*// Create the headlight shader program
+	CShaderProgram* pHeadlightProgram = new CShaderProgram;
+	pHeadlightProgram->CreateProgram();
+	pHeadlightProgram->AddShaderToProgram(&shShaders[4]);
+	pHeadlightProgram->AddShaderToProgram(&shShaders[5]);
+	pHeadlightProgram->LinkProgram();
+	m_pShaderPrograms->push_back(pHeadlightProgram);*/
 
 	// Create the skybox
 	// Skybox downloaded from https://wallpaperaccess.com/full/296718.jpg on 23/03/21
@@ -209,12 +219,6 @@ void Game::Initialise()
 	m_pTetrahedron->Create("resources\\textures\\dirtpile01.jpg"); 
 
 	glEnable(GL_CULL_FACE);
-
-	// Initialise audio and play background music
-	//m_pAudio->Initialise();
-	//m_pAudio->LoadEventSound("Resources\\Audio\\Boing.wav");					// Royalty free sound from freesound.org
-	//m_pAudio->LoadMusicStream("Resources\\Audio\\DST-Garote.mp3");	// Royalty free music from http://www.nosoapradio.us/
-	//m_pAudio->PlayMusicStream();
 
 	/*glm::vec3 p0 = glm::vec3(-500, 10, -200);
 	glm::vec3 p1 = glm::vec3(0, 10, -200);
@@ -246,7 +250,6 @@ void Game::Render()
 	pMainProgram->SetUniform("bUseTexture", true);
 	pMainProgram->SetUniform("sampler0", 0);
 	pMainProgram->SetUniform("CubeMapTex", 1);
-	
 
 	// Set the projection matrix
 	pMainProgram->SetUniform("matrices.projMatrix", m_pCamera->GetPerspectiveProjectionMatrix());
@@ -257,19 +260,25 @@ void Game::Render()
 	glm::mat4 viewMatrix = modelViewMatrixStack.Top();
 	glm::mat3 viewNormalMatrix = m_pCamera->ComputeNormalMatrix(viewMatrix);
 
-	
 	// Set light and materials in main shader program
 	glm::vec4 lightPosition1 = glm::vec4(-100, 100, -100, 1); // Position of light source *in world coordinates*
-	//glm::vec4 lightPosition2 = glm::vec4(ship_position + glm::vec3(0,2,0), 1); // Position of light source *in world coordinates*
-	//glm::vec4 lightPosition2(50, 100, 50, 1); // Position of light source *in world coordinates*
-	pMainProgram->SetUniform("light1.position", viewMatrix*lightPosition1); // Position of light source *in eye coordinates*
-	pMainProgram->SetUniform("light1.La", glm::vec3(1.0f));		// Ambient colour of light
-	pMainProgram->SetUniform("light1.Ld", glm::vec3(1.0f));		// Diffuse colour of light
+	pMainProgram->SetUniform("light1.position", lightPosition1*viewMatrix);		// Ambient colour of light
+	pMainProgram->SetUniform("light1.La", glm::vec3(.5f));		// Ambient colour of light
+	pMainProgram->SetUniform("light1.Ld", glm::vec3(2.0f));		// Diffuse colour of light
 	pMainProgram->SetUniform("light1.Ls", glm::vec3(1.0f));		// Specular colour of light
 	pMainProgram->SetUniform("material1.Ma", glm::vec3(1.0f));	// Ambient material reflectance
 	pMainProgram->SetUniform("material1.Md", glm::vec3(0.0f));	// Diffuse material reflectance
 	pMainProgram->SetUniform("material1.Ms", glm::vec3(0.0f));	// Specular material reflectance
 	pMainProgram->SetUniform("material1.shininess", 15.0f);		// Shininess material property
+
+	// Headlight
+	pMainProgram->SetUniform("Spotlight.position", viewMatrix * glm::vec4(pNext + (10.0f * camB) + (offsetPos * camN), 1));
+	pMainProgram->SetUniform("Spotlight.La", glm::vec3(0.0f));
+	pMainProgram->SetUniform("Spotlight.Ld", glm::vec3(1.0f, 1.0f, 1.0f));
+	pMainProgram->SetUniform("Spotlight.Ls", glm::vec3(1.0f, 1.0f, 1.0f));
+	pMainProgram->SetUniform("Spotlight.direction", glm::normalize(glm::vec3(0,-1,0)) * viewNormalMatrix);
+	pMainProgram->SetUniform("Spotlight.exponent", 20.0f);                                                                       
+	pMainProgram->SetUniform("Spotlight.cutoff", 30.0f);                                                                        
 
 	// Render the skybox and terrain with full ambient reflectance 
 	modelViewMatrixStack.Push();
@@ -282,6 +291,11 @@ void Game::Render()
 		m_pSkybox->Render();
 		pMainProgram->SetUniform("renderSkybox", false);
 	modelViewMatrixStack.Pop();
+
+	// Turn on diffuse + specular materials
+	pMainProgram->SetUniform("material1.Ma", glm::vec3(0.5f));	// Ambient material reflectance
+	pMainProgram->SetUniform("material1.Md", glm::vec3(0.5f));	// Diffuse material reflectance
+	pMainProgram->SetUniform("material1.Ms", glm::vec3(1.0f));	// Specular material reflectance
 
 	modelViewMatrixStack.Push(); {
 
@@ -310,12 +324,7 @@ void Game::Render()
 		pMainProgram->SetUniform("matrices.normalMatrix", m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
 		m_asteroid->Render();
 		modelViewMatrixStack.Pop();
-	} modelViewMatrixStack.Pop();
-
-	// Turn on diffuse + specular materials
-	pMainProgram->SetUniform("material1.Ma", glm::vec3(0.5f));	// Ambient material reflectance
-	pMainProgram->SetUniform("material1.Md", glm::vec3(0.5f));	// Diffuse material reflectance
-	pMainProgram->SetUniform("material1.Ms", glm::vec3(1.0f));	// Specular material reflectance	
+	} modelViewMatrixStack.Pop();	
 
 	// Render the ship
 	modelViewMatrixStack.Push();
@@ -423,22 +432,22 @@ void Game::Render()
 	pMainProgram->SetUniform("matrices.modelViewMatrix", modelViewMatrixStack.Top());
 	pMainProgram->SetUniform("matrices.normalMatrix",
 	m_pCamera->ComputeNormalMatrix(modelViewMatrixStack.Top()));
-	
 
 	// Render your object here
 	modelViewMatrixStack.Pop();
 
 	//m_pCatmullRom->RenderCentreline();
 	//m_pCatmullRom->RenderOffsetCurves();
+
 	m_pCatmullRom->RenderTrack();
 	m_pCatmullRom->RenderTrackBarrier();
+	
 
 	// Draw the 2D graphics after the 3D graphics
 	DisplayFrameRate();
 
 	// Swap buffers to show the rendered image
 	SwapBuffers(m_gameWindow.Hdc());		
-
 }
 
 
@@ -542,7 +551,6 @@ void Game::Update()
 
 	m_pCatmullRom->Sample(m_currentDistance, p);
 
-	glm::vec3 pNext;
 	m_pCatmullRom->Sample(m_currentDistance + 1.0f, pNext);
 
 	camT = glm::normalize(pNext - p);
@@ -551,7 +559,7 @@ void Game::Update()
 
 	lap_number = m_pCatmullRom->CurrentLap(m_currentDistance) + 1;
 
-	ship_position = ((p - (15.0f * camT) + glm::vec3(0, 3, 0)) + offsetPos * camN);
+	ship_position = ((p - (15.0f * camT) + glm::vec3(0, 3, 0)) + offsetPos * camN) + glm::vec3(0,3,0);
 
 	ship_rotation = glm::mat4(glm::mat3(camT, camB, camN));
 

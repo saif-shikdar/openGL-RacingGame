@@ -68,6 +68,7 @@ public:
 	glm::vec3 camB;
 	glm::vec3 camN;
 	glm::vec3 p;
+	glm::vec3 pNext;
 
 private:
 	static const int FPS = 60;

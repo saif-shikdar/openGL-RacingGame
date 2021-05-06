@@ -1,17 +1,17 @@
 ﻿  Game.cpp
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(453,15): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(456,26): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(462,34): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(468,35): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(472,35): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(486,23): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(492,23): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(525,21): warning C4305: '+=': truncation from 'double' to 'float'
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(529,22): warning C4305: '-=': truncation from 'double' to 'float'
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(532,22): warning C4305: '+=': truncation from 'double' to 'float'
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(540,7): warning C4552: '*': result of expression not used
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(749,35): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(756,30): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(763,30): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(812,21): warning C4244: 'return': conversion from 'WPARAM' to 'int', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(462,15): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(465,26): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(471,34): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(477,35): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(481,35): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(495,23): warning C4305: '=': truncation from 'double' to 'float'
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(501,23): warning C4305: '=': truncation from 'double' to 'float'
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(534,21): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(538,22): warning C4305: '-=': truncation from 'double' to 'float'
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(541,22): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(549,7): warning C4552: '*': result of expression not used
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(757,35): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(764,30): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(771,30): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Users\saifs\Documents\GitHub\openGL-RacingGame\OpenGLTemplate\Game.cpp(820,21): warning C4244: 'return': conversion from 'WPARAM' to 'int', possible loss of data
   OpenGLTemplate.vcxproj -> C:\Users\saifs\Documents\GitHub\openGL-RacingGame\x64\Debug\OpenGLTemplate.exe
